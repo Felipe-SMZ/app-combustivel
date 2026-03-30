@@ -3,15 +3,10 @@ package com.example.calculadora_combustivel
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.example.calculadora_combustivel.dto.request.CombustivelRequest
-import com.example.calculadora_combustivel.dto.response.CombustivelResponse
-import com.example.calculadora_combustivel.network.RetrofitClient
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class CalculoActivity : AppCompatActivity() {
 
@@ -20,85 +15,58 @@ class CalculoActivity : AppCompatActivity() {
     private lateinit var btnCalcular: MaterialButton
     private lateinit var tvResultado: TextView
 
+    // Instancia o ViewModel — sobrevive à rotação de tela
+    private val viewModel: CalculoViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_calculo)
 
-        // 🔗 Bind dos componentes
         etGasolina = findViewById(R.id.etGasolina)
         etEtanol = findViewById(R.id.etEtanol)
         btnCalcular = findViewById(R.id.btnCalcular)
         tvResultado = findViewById(R.id.tvResultado)
 
-        // 🎯 Clique do botão
-        btnCalcular.setOnClickListener {
-            calcularCombustivel()
+        // Observa o resultado — atualiza a UI quando o ViewModel responder
+        viewModel.resultado.observe(this) { res ->
+            val melhor = res.melhorCombustivel
+            val proporcao = res.proporcao
+
+            tvResultado.text = "Melhor: $melhor\nProporção: %.2f".format(proporcao)
+
+            if (melhor == "ETANOL") {
+                tvResultado.setTextColor(Color.parseColor("#16A34A")) // verde
+            } else {
+                tvResultado.setTextColor(Color.parseColor("#DC2626")) // vermelho
+            }
         }
-    }
 
-    private fun calcularCombustivel() {
-
-        val gasolina = etGasolina.text.toString().toDoubleOrNull()
-        val etanol = etEtanol.text.toString().toDoubleOrNull()
-
-        // ✅ Validação
-        if (gasolina == null || etanol == null) {
-            tvResultado.text = "Preencha os valores corretamente"
+        // Observa erros
+        viewModel.erro.observe(this) { mensagem ->
+            tvResultado.text = mensagem
             tvResultado.setTextColor(Color.RED)
-            return
         }
 
-        // 🔄 Criar request
-        val request = CombustivelRequest(
-            valorEtanol = etanol,
-            valorGasolina = gasolina
-        )
+        // Observa o loading — desabilita o botão durante a chamada
+        viewModel.loading.observe(this) { carregando ->
+            btnCalcular.isEnabled = !carregando
+            if (carregando) {
+                tvResultado.text = "Calculando..."
+                tvResultado.setTextColor(Color.GRAY)
+            }
+        }
 
-        tvResultado.text = "Calculando..."
-        tvResultado.setTextColor(Color.GRAY)
+        btnCalcular.setOnClickListener {
+            val gasolina = etGasolina.text.toString().toDoubleOrNull()
+            val etanol = etEtanol.text.toString().toDoubleOrNull()
 
-        // 🌐 Chamada da API
-        RetrofitClient.api.calcular(request)
-            .enqueue(object : Callback<CombustivelResponse> {
+            if (gasolina == null || etanol == null) {
+                tvResultado.text = "Preencha os valores corretamente"
+                tvResultado.setTextColor(Color.RED)
+                return@setOnClickListener
+            }
 
-                override fun onResponse(
-                    call: Call<CombustivelResponse>,
-                    response: Response<CombustivelResponse>
-                ) {
-                    if (response.isSuccessful) {
-
-                        val resultado = response.body()
-
-                        if (resultado != null) {
-
-                            val melhor = resultado.melhorCombustivel
-                            val proporcao = resultado.proporcao
-
-                            tvResultado.text =
-                                "Melhor: $melhor\nProporção: %.2f".format(proporcao)
-
-                            // 🎨 Cor dinâmica
-                            if (melhor == "ETANOL") {
-                                tvResultado.setTextColor(Color.parseColor("#16A34A")) // verde
-                            } else {
-                                tvResultado.setTextColor(Color.parseColor("#DC2626")) // vermelho
-                            }
-
-                        } else {
-                            tvResultado.text = "Erro: resposta vazia"
-                            tvResultado.setTextColor(Color.RED)
-                        }
-
-                    } else {
-                        tvResultado.text = "Erro na API (${response.code()})"
-                        tvResultado.setTextColor(Color.RED)
-                    }
-                }
-
-                override fun onFailure(call: Call<CombustivelResponse>, t: Throwable) {
-                    tvResultado.text = "Erro de conexão"
-                    tvResultado.setTextColor(Color.RED)
-                }
-            })
+            viewModel.calcular(etanol, gasolina) // só delega ao ViewModel
+        }
     }
 }

@@ -29,16 +29,52 @@ app/
         │       └── CombustivelResponse.kt # Dados recebidos da API
         ├── network/
         │   └── RetrofitClient.kt          # Singleton de configuração do Retrofit
-        ├── CalculoActivity.kt             # Lógica de cálculo e chamada à API
+        ├── CalculoViewModel.kt            # Lógica e chamada à API
+        ├── CalculoActivity.kt             # Apenas UI (observa o ViewModel)
         ├── MainActivity.kt                # Tela inicial
         └── SplashActivity.kt             # Tela de splash com animação
 ```
 
 ---
 
+## 🏛️ Arquitetura — MVVM
+
+O projeto segue o padrão **MVVM (Model-View-ViewModel)**, recomendado pelo Google para apps Android modernos.
+
+### Analogia com Spring Boot
+
+| Camada Spring | Camada Android | Responsabilidade |
+|---------------|----------------|-----------------|
+| `Controller` | `Activity` | Recebe input do usuário, exibe resultado na tela |
+| `Service` | `ViewModel` | Lógica, chamada à API, gerencia estado |
+| `RestTemplate` | `Retrofit` | Executa as chamadas HTTP |
+| `DTO` | `data class` | Representa os dados trafegados |
+
+### Fluxo de dados
+
+```
+Usuário digita valores
+        ↓
+CalculoActivity.btnCalcular.setOnClickListener
+        ↓
+CalculoViewModel.calcular(etanol, gasolina)
+        ↓
+RetrofitClient.api.calcular(request)   ← chamada HTTP (suspend)
+        ↓
+ViewModel atualiza LiveData (resultado / erro / loading)
+        ↓
+Activity observa e atualiza a UI automaticamente
+```
+
+### Por que ViewModel e não só Activity?
+
+A `Activity` pode ser destruída e recriada a qualquer momento (ao girar a tela, por exemplo). O `ViewModel` **sobrevive** a isso — mantém o estado e a chamada em andamento, entregando o resultado quando a Activity for recriada.
+
+---
+
 ## 🔗 Conexão com o Backend
 
-A comunicação com a API é feita via **Retrofit 2** com conversão JSON usando **Gson**.
+A comunicação com a API é feita via **Retrofit 2** com Coroutines e conversão JSON usando **Gson**.
 
 ### Endpoint consumido
 
@@ -59,6 +95,15 @@ POST /combustivel
 {
   "melhorCombustivel": "ETANOL",
   "proporcao": 0.603
+}
+```
+
+### Interface Retrofit (com Coroutines)
+
+```kotlin
+interface CombustivelApi {
+    @POST("/combustivel")
+    suspend fun calcular(@Body request: CombustivelRequest): CombustivelResponse
 }
 ```
 
@@ -94,13 +139,16 @@ A regra aplicada é a clássica do mercado brasileiro:
 
 ## 🛠️ Tecnologias Utilizadas
 
-| Tecnologia | Versão / Uso |
-|------------|-------------|
+| Tecnologia | Uso |
+|------------|-----|
 | Kotlin | Linguagem principal |
 | Android SDK | Desenvolvimento mobile |
+| MVVM + ViewModel | Arquitetura e separação de responsabilidades |
+| LiveData | Observação reativa de estado na UI |
+| Coroutines | Chamadas assíncronas sem callbacks |
 | Retrofit 2 | Chamadas HTTP à API REST |
 | Gson Converter | Serialização/desserialização JSON |
-| Material Components | UI — `TextInputEditText`, `MaterialButton` |
+| Material Components | UI — TextInputEditText, MaterialButton |
 | Spring Boot (backend) | API REST em Java |
 
 ---
@@ -116,22 +164,20 @@ A regra aplicada é a clássica do mercado brasileiro:
 ### Passos
 
 1. Clone o repositório:
-   ```bash
-   git clone https://github.com/seu-usuario/calculadora-combustivel.git
-   ```
+```bash
+git clone https://github.com/seu-usuario/calculadora-combustivel.git
+```
 
 2. Abra o projeto no **Android Studio**
 
 3. Certifique-se de que o backend está rodando:
-   ```bash
-   ./mvnw spring-boot:run
-   # ou
-   ./gradlew bootRun
-   ```
+```bash
+./mvnw spring-boot:run
+```
 
-4. Execute o app no emulador ou dispositivo via Android Studio (`▶ Run`)
+4. Execute o app no emulador via Android Studio
 
-> 💡 Se estiver usando dispositivo físico, altere o `BASE_URL` no `RetrofitClient.kt` para o IP da sua máquina na rede local (ex: `http://192.168.1.10:8080/`).
+> 💡 Se estiver usando dispositivo físico, altere o `BASE_URL` no `RetrofitClient.kt` para o IP local da sua máquina (ex: `http://192.168.1.10:8080/`).
 
 ---
 
@@ -139,26 +185,29 @@ A regra aplicada é a clássica do mercado brasileiro:
 
 ```groovy
 // Retrofit
-implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+implementation("com.squareup.retrofit2:retrofit:2.9.0")
+implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+// ViewModel + LiveData + Coroutines
+implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
 
 // Material Design
-implementation 'com.google.android.material:material:1.11.0'
+implementation("com.google.android.material:material:1.11.0")
 ```
 
 ---
 
 ## 🔮 Melhorias Futuras
 
-- [ ] Migrar chamadas de API para **Coroutines** (substituir `enqueue`)
-- [ ] Adicionar camada **ViewModel** com `LiveData` / `StateFlow`
-- [ ] Desabilitar botão durante requisição (evitar chamadas duplicadas)
+- [ ] Adicionar camada `Repository` entre ViewModel e API
 - [ ] Injeção de dependência com **Hilt**
 - [ ] Suporte a múltiplos ambientes via `BuildConfig` (dev, prod)
-- [ ] Testes unitários e de integração
+- [ ] Testes unitários do ViewModel com `JUnit` e `MockK`
+- [ ] Testes de integração com `MockWebServer`
 
 ---
 
 ## 👨‍💻 Autor
 
-Desenvolvido como projeto de estudo de integração **Android Kotlin ↔ Backend Java REST**.
+Desenvolvido como projeto de estudo de integração **Android Kotlin ↔ Backend Java REST**, com evolução de arquitetura de callbacks para MVVM + Coroutines.
