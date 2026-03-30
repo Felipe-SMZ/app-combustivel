@@ -210,4 +210,9 @@ implementation("com.google.android.material:material:1.11.0")
 
 ## 👨‍💻 Autor
 
+Felipe Shimizu  
+
+🔗 Portfólio: https://www.devfelipeshimizu.me/  
+🔗 LinkedIn: https://www.linkedin.com/in/felipesshimizu
+
 Desenvolvido como projeto de estudo de integração **Android Kotlin ↔ Backend Java REST**, com evolução de arquitetura de callbacks para MVVM + Coroutines.
