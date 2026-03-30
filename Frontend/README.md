@@ -104,5 +104,3 @@ Felipe Shimizu
 
 🔗 Portfólio: [https://www.devfelipeshimizu.me/](https://www.devfelipeshimizu.me/)
 🔗 LinkedIn: [https://www.linkedin.com/in/felipesshimizu](https://www.linkedin.com/in/felipesshimizu)
-
-```
