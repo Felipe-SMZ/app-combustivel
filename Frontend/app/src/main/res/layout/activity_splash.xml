@@ -29,11 +29,11 @@
             android:id="@+id/tvAppName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="FuelCalc"
+            android:letterSpacing="0.08"
+            android:text="CalculadoraFlex"
             android:textColor="#FFFFFF"
             android:textSize="38sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.08"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvSubtitle"
