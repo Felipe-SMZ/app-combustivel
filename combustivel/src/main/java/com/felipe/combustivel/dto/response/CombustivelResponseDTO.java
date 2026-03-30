@@ -6,7 +6,7 @@ public class CombustivelResponseDTO {
 
     private String melhorCombustivel;
     private BigDecimal proporcao;
-    
+
     public CombustivelResponseDTO(String melhorCombustivel, BigDecimal proporcao) {
         this.melhorCombustivel = melhorCombustivel;
         this.proporcao = proporcao;
