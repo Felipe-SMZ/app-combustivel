@@ -11,19 +11,20 @@
         android:id="@+id/centerContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.5">
 
         <ImageView
-            android:layout_width="88dp"
-            android:layout_height="88dp"
-            android:src="@drawable/logo"
+            android:layout_width="207dp"
+            android:layout_height="247dp"
+            android:layout_marginBottom="20dp"
             android:scaleType="fitCenter"
-            android:layout_marginBottom="20dp"/>
+            android:src="@drawable/calculadoraflex" />
 
         <TextView
             android:id="@+id/tvAppName"
@@ -39,10 +40,10 @@
             android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="Calculadora inteligente de combustível"
             android:textColor="#E0E7FF"
-            android:textSize="15sp"
-            android:layout_marginTop="10dp"/>
+            android:textSize="15sp" />
 
     </LinearLayout>
 
